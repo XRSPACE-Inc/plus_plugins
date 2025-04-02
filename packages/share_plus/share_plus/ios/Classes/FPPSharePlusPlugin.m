@@ -398,16 +398,23 @@ TopViewControllerForViewController(UIViewController *viewController) {
   UIActivityViewSuccessCompanion *companion =
       [[UIActivityViewSuccessCompanion alloc] initWithResult:result];
   activityViewController.companion = companion;
+  
+  UIViewController *dummyController = [[UIViewController alloc] init];
+  dummyController.modalPresentationStyle = UIModalPresentationOverCurrentContext;
+  
+  [controller presentViewController:dummyController animated:NO completion:^{
+      [dummyController presentViewController:activityViewController animated:YES completion:nil];
+  }];
+  
+  __weak typeof(controller) weakController = controller;
   activityViewController.completionWithItemsHandler =
       ^(UIActivityType activityType, BOOL completed, NSArray *returnedItems,
         NSError *activityError) {
         companion.activityType = activityType;
         companion.completed = completed;
+        [dummyController dismissViewControllerAnimated:NO completion:nil];
+        [weakController dismissViewControllerAnimated:NO completion:nil];
       };
-
-  [controller presentViewController:activityViewController
-                           animated:YES
-                         completion:nil];
 }
 
 + (void)shareUri:(NSString *)uri
